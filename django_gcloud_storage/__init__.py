@@ -162,6 +162,9 @@ class DjangoGCloudStorage(Storage):
         blob = self.bucket.blob(name)
         blob.upload_from_file(content, size=total_bytes)
 
+        if self.is_public:
+            blob.make_public()
+
         return name
 
     def _open(self, name, mode):
