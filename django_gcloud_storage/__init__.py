@@ -107,7 +107,7 @@ class GCloudFile(File):
 @deconstructible
 class DjangoGCloudStorage(Storage):
 
-    def __init__(self, project=None, bucket=None, credentials_file_path=None):
+    def __init__(self, project=None, bucket=None, credentials_file_path=None, is_public=False):
         self._client = None
         self._bucket = None
 
@@ -129,6 +129,7 @@ class DjangoGCloudStorage(Storage):
             self.project_name = settings.GCS_PROJECT
 
         self.bucket_subdir = ''  # TODO should be a parameter
+        self.is_public = is_public
 
     @property
     def client(self):
@@ -241,4 +242,9 @@ class DjangoGCloudStorage(Storage):
         name = safe_join(self.bucket_subdir, name)
         name = prepare_name(name)
 
-        return self.bucket.get_blob(name).generate_signed_url(expiration=datetime.datetime.now() + datetime.timedelta(hours=1))
+        blob = self.bucket.get_blob(name)
+
+        if self.is_public:
+            return blob.public_url
+
+        return blob.generate_signed_url(expiration=datetime.datetime.now() + datetime.timedelta(hours=1))
